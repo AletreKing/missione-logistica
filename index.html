@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Missione Logistica – ITE Martino Filetico Ferentino</title>
+<meta name="description" content="Mettiti alla prova come logistico: scegli i mezzi, organizza il giro delle consegne, gestisci le scorte. Un gioco dell'ITE Martino Filetico di Ferentino.">
+<meta name="theme-color" content="#9e0000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Missione Logistica">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{--amaranto:#9e0000;--scuro:#5a0000;--arancio:#f07d1a;--giallo:#ffe000;--crema:#fff6ec;--verde:#2e9e4f;--grigio:#6b6b6b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--amaranto);color:#222;display:flex;justify-content:center}
+#app{width:100%;max-width:560px;min-height:100vh;min-height:100dvh;background:var(--crema);display:flex;flex-direction:column;position:relative}
+header{background:var(--amaranto);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+header .t{font-weight:800;letter-spacing:.02em;font-size:15px;text-transform:uppercase}
+header .t span{color:var(--giallo)}
+header .stars{font-size:15px;white-space:nowrap}
+main{flex:1;padding:18px 16px 24px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:34px;line-height:1.05;color:var(--amaranto);font-weight:900;text-transform:uppercase}
+h1 em{font-style:normal;color:var(--arancio)}
+h2{font-size:22px;color:var(--amaranto);font-weight:800}
+p{line-height:1.45;font-size:16px}
+.small{font-size:13.5px;color:var(--grigio)}
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(90,0,0,.10)}
+.brief{border-left:6px solid var(--arancio)}
+.brief .who{font-weight:800;color:var(--scuro);margin-bottom:4px;font-size:14px;text-transform:uppercase;letter-spacing:.03em}
+.btn{appearance:none;border:0;border-radius:12px;padding:14px 18px;font-size:17px;font-weight:800;cursor:pointer;background:var(--arancio);color:#fff;width:100%;text-transform:uppercase;letter-spacing:.02em}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sec{background:#fff;color:var(--amaranto);border:2px solid var(--amaranto)}
+.btn.giallo{background:var(--giallo);color:var(--scuro)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.pill{display:inline-block;background:var(--giallo);color:var(--scuro);font-weight:800;border-radius:999px;padding:3px 10px;font-size:13px}
+.steps{display:flex;gap:6px}
+.steps div{flex:1;height:6px;border-radius:3px;background:#e7d3c6}
+.steps div.on{background:var(--arancio)}
+.steps div.done{background:var(--amaranto)}
+/* Livello 1 */
+.veh{display:flex;gap:12px;align-items:center;padding:12px;border:2px solid #eee;border-radius:12px;background:#fff;cursor:pointer;text-align:left;width:100%;font:inherit}
+.veh.sel{border-color:var(--arancio);background:#fff4ea}
+.veh .ico{font-size:34px;width:44px;text-align:center}
+.veh b{display:block;font-size:16px;color:var(--scuro)}
+.veh small{display:block;color:#555;font-size:13px;line-height:1.35}
+table.res{width:100%;border-collapse:collapse;font-size:14px}
+table.res th,table.res td{padding:7px 6px;border-bottom:1px solid #eee;text-align:left}
+table.res td.n{text-align:right;white-space:nowrap}
+table.res tr.best td{background:#e8f6ec;font-weight:700}
+table.res tr.ko td{color:#999;text-decoration:line-through}
+table.res tr.mine td:first-child::before{content:"👉 "}
+/* Mappa */
+.map{width:100%;background:#eaf3e6;border-radius:14px;touch-action:manipulation;display:block}
+.town circle{cursor:pointer}
+.town text{font-size:11px;font-weight:700;fill:#333;pointer-events:none;paint-order:stroke;stroke:#eaf3e6;stroke-width:3px}
+.kpi{display:flex;gap:10px}
+.kpi div{flex:1;background:#fff;border-radius:12px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:22px;color:var(--amaranto)}
+.kpi span{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.03em}
+.legend{display:flex;gap:14px;font-size:13px;flex-wrap:wrap}
+.legend i{display:inline-block;width:22px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+/* Scorte */
+.prod{display:flex;flex-direction:column;gap:6px}
+.prod .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.prod b{color:var(--scuro);font-size:16px}
+.prod input[type=range]{width:100%;accent-color:var(--arancio);height:28px}
+.prod .meta{font-size:13px;color:#555;line-height:1.35}
+.prod .ord{font-weight:800;color:var(--arancio);font-size:18px;white-space:nowrap}
+.bar{height:16px;border-radius:8px;background:#eee;overflow:hidden}
+.bar div{height:100%;background:var(--verde);transition:width .2s}
+.bar.over div{background:#d12b2b}
+/* Risultato */
+.big-stars{font-size:46px;text-align:center;letter-spacing:6px}
+.ok{color:var(--verde);font-weight:800}
+.ko{color:#c62020;font-weight:800}
+.promo{background:var(--amaranto);color:#fff;border-radius:16px;padding:18px}
+.promo h2{color:var(--giallo)}
+.promo p{color:#fff}
+.promo ul{margin:8px 0 0 18px;line-height:1.5}
+.date{background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;margin-top:8px}
+.date b{color:var(--giallo)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:14px;z-index:9}
+.modal img{max-width:100%;max-height:85vh;border-radius:10px}
+.modal .x{position:absolute;top:10px;right:14px;color:#fff;font-size:34px;background:none;border:0;cursor:pointer}
+footer{font-size:12px;text-align:center;color:#fff;background:var(--scuro);padding:8px}
+@media (min-width:900px){ /* LIM / desktop */
+  #app{max-width:760px} p{font-size:18px} h1{font-size:44px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><div class="t">Missione <span>Logistica</span></div><div class="stars" id="hdrStars"></div></header>
+  <main id="main"></main>
+  <footer>ITE Martino Filetico · Ferentino · Diploma in 4 anni, curvatura Logistica</footer>
+</div>
+<script>
+/* =========================================================
+   CONFIGURAZIONE: modifica qui date, link e testi della scuola
+   ========================================================= */
+const CONFIG = {
+  scuola: "ITE Martino Filetico – Ferentino",
+  openDay: [
+    // { quando: "Sabato 13 dicembre 2026, ore 15–19", dove: "Sede ITE, Ferentino" },
+    { quando: "Date degli open day in arrivo", dove: "Segui i canali social della scuola" }
+  ],
+  iscrizioni: "Iscrizioni online: gennaio 2027 (date ufficiali del Ministero)",
+  sitoScuola: "https://www.iismartinofiletico.edu.it/",
+  prenotaVisita: "",         // es. link a un Google Form di prenotazione
+  immagineQuadroOrario: "quadro_orario.png"
+};
+
+/* ---------------- Dati del territorio ---------------- */
+const TOWNS = {
+  hub:      {n:"Ferentino (magazzino)", lat:41.691, lon:13.255},
+  frosinone:{n:"Frosinone", lat:41.640, lon:13.351},
+  alatri:   {n:"Alatri",    lat:41.726, lon:13.343},
+  anagni:   {n:"Anagni",    lat:41.744, lon:13.155},
+  fiuggi:   {n:"Fiuggi",    lat:41.800, lon:13.223},
+  veroli:   {n:"Veroli",    lat:41.692, lon:13.418},
+  ceccano:  {n:"Ceccano",   lat:41.568, lon:13.334},
+  ripi:     {n:"Ripi",      lat:41.613, lon:13.427},
+  supino:   {n:"Supino",    lat:41.622, lon:13.235},
+  morolo:   {n:"Morolo",    lat:41.638, lon:13.199}
+};
+const ROAD = 1.35; // le strade non sono in linea d'aria
+function km(a,b){
+  const A=TOWNS[a],B=TOWNS[b],R=6371,toR=x=>x*Math.PI/180;
+  const dLat=toR(B.lat-A.lat),dLon=toR(B.lon-A.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(toR(A.lat))*Math.cos(toR(B.lat))*Math.sin(dLon/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(h))*ROAD*10)/10;
+}
+const eur = v => "€ " + v.toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:0});
+const kmf = v => v.toLocaleString("it-IT",{maximumFractionDigits:1}) + " km";
+
+/* ---------------- Stato ---------------- */
+const S = { stars:[null,null,null], level:0 };
+const $ = sel => document.querySelector(sel);
+const main = () => $("#main");
+function starsTxt(n){ return "★".repeat(n)+"☆".repeat(3-n); }
+function updHdr(){
+  const t=S.stars.reduce((a,b)=>a+(b||0),0);
+  $("#hdrStars").textContent = S.stars.some(x=>x!==null) ? `★ ${t}/9` : "";
+}
+function steps(cur){
+  return `<div class="steps">${[0,1,2].map(i=>`<div class="${i<cur?'done':i===cur?'on':''}"></div>`).join("")}</div>`;
+}
+function render(html){ main().innerHTML=html; window.scrollTo(0,0); updHdr(); }
+function brief(text){ return `<div class="card brief"><div class="who">📋 Giulia, direttrice operativa</div><p>${text}</p></div>`; }
+
+/* =========================================================
+   INTRO
+   ========================================================= */
+function intro(){
+  render(`
+    <span class="pill">Gioco di orientamento</span>
+    <h1>Sei pronto a fare il <em>logistico</em>?</h1>
+    <p>Il logistico non sposta le scatole: <b>decide</b> come farle arrivare nel posto giusto, al momento giusto, al costo giusto.</p>
+    <div class="card">
+      <p><b>3 missioni</b>, circa 5 minuti:</p>
+      <p>🚚 <b>1. Il mezzo giusto</b> – scegli il veicolo per una consegna difficile<br>
+         🗺️ <b>2. Il giro delle consegne</b> – organizza il percorso più corto<br>
+         📦 <b>3. Le scorte</b> – decidi quanta merce ordinare per la settimana</p>
+    </div>
+    ${brief("Benvenuto nel centro logistico di Ferentino! Oggi ti affido tre decisioni vere. Per ognuna puoi guadagnare fino a 3 stelle.")}
+    <button class="btn" onclick="lv1()">Inizia la missione</button>
+  `);
+}
+
+/* =========================================================
+   MISSIONE 1 – Il mezzo giusto
+   ========================================================= */
+const VEH = [
+  {id:"furgone", ico:"🚐", n:"Furgone",               len:6,    cap:3,  fix:40,  pk:0.35},
+  {id:"frigo",   ico:"🧊", n:"Furgone frigorifero",   len:6.5,  cap:4,  fix:55,  pk:0.45},
+  {id:"camion",  ico:"🚛", n:"Camion medio",          len:9.5,  cap:10, fix:90,  pk:0.75},
+  {id:"bilico",  ico:"🚚", n:"Autoarticolato (bilico)",len:16.5, cap:33, fix:160, pk:1.15}
+];
+const L1 = { dest:"alatri", pallet:18, maxLen:10 };
+let l1sel=null;
+function l1calc(v){
+  const d=km("hub",L1.dest), viaggi=Math.ceil(L1.pallet/v.cap);
+  const costo=Math.round(viaggi*(v.fix+v.pk*2*d));
+  return {viaggi,costo,ok:v.len<=L1.maxLen};
+}
+function lv1(){
+  l1sel=null;
+  const d=km("hub",L1.dest);
+  render(`
+    ${steps(0)}
+    <h2>Missione 1 · Il mezzo giusto</h2>
+    ${brief(`È arrivato un ordine: <b>${L1.pallet} pallet di mattoni</b> per un cantiere di restauro nel <b>centro storico di Alatri</b>. Il cliente avvisa: <b>nelle vie del centro entrano solo mezzi lunghi al massimo ${L1.maxLen} metri</b>. Scegli il mezzo che costa meno… senza restare bloccato!`)}
+    <div class="card small">📍 Magazzino → Alatri: <b>${kmf(d)}</b> (andata). Ogni viaggio è andata e ritorno.<br>💶 Costo di un viaggio = costo fisso + costo al km × km percorsi.</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${VEH.map(v=>`<button class="veh" id="v_${v.id}" onclick="l1pick('${v.id}')">
+        <div class="ico">${v.ico}</div>
+        <div><b>${v.n}</b><small>Lunghezza ${v.len.toLocaleString("it-IT")} m · porta ${v.cap} pallet<br>Costo fisso ${eur(v.fix)} a viaggio · ${v.pk.toLocaleString("it-IT",{minimumFractionDigits:2})} €/km</small></div>
+      </button>`).join("")}
+    </div>
+    <button class="btn" id="l1ok" disabled onclick="l1end()">Conferma la scelta</button>
+  `);
+}
+function l1pick(id){
+  l1sel=id;
+  document.querySelectorAll(".veh").forEach(e=>e.classList.toggle("sel",e.id==="v_"+id));
+  $("#l1ok").disabled=false;
+}
+function l1end(){
+  const rows=VEH.map(v=>({v,...l1calc(v)}));
+  const valid=rows.filter(r=>r.ok).sort((a,b)=>a.costo-b.costo);
+  const best=valid[0], mine=rows.find(r=>r.v.id===l1sel);
+  let st, msg;
+  if(!mine.ok){ st=0; msg=`<span class="ko">Il ${mine.v.n.toLowerCase()} è lungo ${mine.v.len.toLocaleString("it-IT")} metri e non entra nelle vie del centro!</span> Sulla carta era il più economico, ma il logistico deve leggere <b>tutti</b> i vincoli dell'ordine.`; }
+  else if(mine.v.id===best.v.id){ st=3; msg=`<span class="ok">Scelta perfetta!</span> Il ${best.v.n.toLowerCase()} entra in centro e, con ${best.viaggi} viaggi, è la soluzione più economica.`; }
+  else { st=1; msg=`La consegna arriva, ma spendi <b>${eur(mine.costo-best.costo)}</b> in più del necessario. Con ${best.v.n.toLowerCase()} bastavano ${best.viaggi} viaggi.`; }
+  S.stars[0]=Math.max(S.stars[0]??0,st);
+  render(`
+    ${steps(0)}
+    <h2>Missione 1 · Risultato</h2>
+    <div class="big-stars">${starsTxt(st)}</div>
+    <div class="card"><p>${msg}</p></div>
+    <div class="card">
+      <table class="res"><tr><th>Mezzo</th><th class="n">Viaggi</th><th class="n">Costo</th></tr>
+      ${rows.map(r=>`<tr class="${!r.ok?'ko':''} ${r.v.id===best.v.id?'best':''} ${r.v.id===l1sel?'mine':''}"><td>${r.v.ico} ${r.v.n}</td><td class="n">${r.viaggi}</td><td class="n">${eur(r.costo)}</td></tr>`).join("")}
+      </table>
+      <p class="small" style="margin-top:8px">Barrato = non può entrare nel centro storico. In verde la soluzione migliore.</p>
+    </div>
+    ${brief("All'ITE studierai proprio questo: costi fissi e variabili (Economia aziendale) e organizzazione dei trasporti (curvatura Logistica).")}
+    <div class="row"><button class="btn sec" onclick="lv1()">Riprova</button><button class="btn" onclick="lv2()" ${st===0?'disabled':''}>Avanti</button></div>
+  `);
+}
+
+/* =========================================================
+   MISSIONE 2 – Il giro delle consegne
+   ========================================================= */
+const L2 = { stops:["alatri","anagni","fiuggi","frosinone","veroli"] };
+let route=[];
+function routeKm(seq){ let t=0,p="hub"; for(const s of seq){t+=km(p,s);p=s;} return Math.round((t+km(p,"hub"))*10)/10; }
+function perms(a){ if(a.length<=1) return [a]; return a.flatMap((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).map(p=>[x,...p])); }
+function bestRoute(stops){ let b=null,bk=1e9; for(const p of perms(stops)){const k=routeKm(p); if(k<bk){bk=k;b=p;}} return {seq:b,km:bk}; }
+function proj(){
+  const ids=Object.keys(TOWNS), lats=ids.map(i=>TOWNS[i].lat), lons=ids.map(i=>TOWNS[i].lon);
+  const minLat=Math.min(...lats),maxLat=Math.max(...lats),minLon=Math.min(...lons),maxLon=Math.max(...lons);
+  const W=400,pad=38, kx=Math.cos(41.7*Math.PI/180);
+  const sx=(W-2*pad)/((maxLon-minLon)*kx), H=Math.round((maxLat-minLat)*sx+2*pad);
+  const P={}; ids.forEach(i=>P[i]={x:pad+(TOWNS[i].lon-minLon)*kx*sx, y:pad+(maxLat-TOWNS[i].lat)*sx});
+  return {P,W,H};
+}
+function mapSVG(seq, opt){
+  const {P,W,H}=proj();
+  const line=(s,c,dash,w)=>{ const pts=["hub",...s].map(i=>`${P[i].x.toFixed(1)},${P[i].y.toFixed(1)}`).join(" "); return `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${dash?'stroke-dasharray="8 7"':''}/>`; };
+  let g="";
+  if(opt) g+=line([...opt,"hub"],"#2e9e4f",true,5);
+  if(seq.length) g+=line(seq.length===L2.stops.length?[...seq,"hub"]:seq,"#f07d1a",false,4);
+  for(const id of Object.keys(TOWNS)){
+    const p=P[id], isHub=id==="hub", isStop=L2.stops.includes(id), idx=seq.indexOf(id);
+    const fill=isHub?"#9e0000":isStop?(idx>=0?"#f07d1a":"#fff"):"#bbb";
+    const r=isHub?11:isStop?13:5;
+    const lab=isHub?"Magazzino":TOWNS[id].n;
+    g+=`<g class="town" ${isStop&&!opt?`onclick="l2tap('${id}')"`:""}>
+      ${isStop?`<circle cx="${p.x}" cy="${p.y}" r="22" fill="transparent"/>`:""}
+      <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="${isStop||isHub?'#5a0000':'none'}" stroke-width="2.5"/>
+      ${idx>=0?`<text x="${p.x}" y="${p.y+4}" text-anchor="middle" style="fill:#fff;stroke:none;font-size:12px">${idx+1}</text>`:""}
+      ${isHub?`<text x="${p.x}" y="${p.y+4}" text-anchor="middle" style="fill:#fff;stroke:none;font-size:11px">🏭</text>`:""}
+      <text x="${p.x}" y="${p.y-(r+6)}" text-anchor="middle" style="${isStop||isHub?'':'font-weight:400;fill:#777'}">${lab}</text>
+    </g>`;
+  }
+  return `<svg class="map" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
+}
+function lv2(){
+  route=[];
+  render(`
+    ${steps(1)}
+    <h2>Missione 2 · Il giro delle consegne</h2>
+    ${brief(`Un solo camion, <b>${L2.stops.length} negozi</b> da rifornire: ${L2.stops.map(s=>TOWNS[s].n).join(", ")}. Il camion parte dal magazzino e ci torna. <b>Tocca i paesi nell'ordine in cui vuoi visitarli</b>: meno chilometri fai, meno spendi e meno inquini.`)}
+    <div id="l2map"></div>
+    <div class="kpi"><div><b id="l2km">0 km</b><span>Percorso</span></div><div><b id="l2n">0/${L2.stops.length}</b><span>Tappe</span></div></div>
+    <div class="row"><button class="btn sec" onclick="l2undo()">Annulla</button><button class="btn" id="l2ok" disabled onclick="l2end()">Conferma il giro</button></div>
+  `);
+  l2draw();
+}
+function l2draw(){
+  $("#l2map").innerHTML=mapSVG(route);
+  const done=route.length===L2.stops.length;
+  $("#l2km").textContent=kmf(done?routeKm(route):(()=>{let t=0,p="hub";for(const s of route){t+=km(p,s);p=s;}return Math.round(t*10)/10;})());
+  $("#l2n").textContent=`${route.length}/${L2.stops.length}`;
+  $("#l2ok").disabled=!done;
+}
+function l2tap(id){ if(route.includes(id)) return; route.push(id); l2draw(); }
+function l2undo(){ route.pop(); l2draw(); }
+function l2end(){
+  const mine=routeKm(route), opt=bestRoute(L2.stops), extra=Math.round((mine-opt.km)*10)/10;
+  const ratio=mine/opt.km, st= ratio<=1.001?3: ratio<=1.10?2:1;
+  S.stars[1]=Math.max(S.stars[1]??0,st);
+  const costoKm=1.0, co2=0.9; // € e kg di CO2 per km di un camion medio (valori indicativi)
+  const nViaggi=220; // giri in un anno
+  render(`
+    ${steps(1)}
+    <h2>Missione 2 · Risultato</h2>
+    <div class="big-stars">${starsTxt(st)}</div>
+    ${mapSVG(route,opt.seq)}
+    <div class="legend"><span><i style="background:#f07d1a"></i>Il tuo giro</span><span><i style="background:#2e9e4f"></i>Percorso ottimale (software)</span></div>
+    <div class="kpi"><div><b>${kmf(mine)}</b><span>Il tuo giro</span></div><div><b>${kmf(opt.km)}</b><span>Ottimale</span></div></div>
+    <div class="card"><p>${extra<=0.05
+      ?`<span class="ok">Hai trovato il percorso ottimale!</span> Lo stesso risultato del software di ottimizzazione.`
+      :`Il tuo giro è più lungo di <b>${kmf(extra)}</b>. Sembra poco? Su ${nViaggi} giri all'anno sono <b>${kmf(extra*nViaggi)}</b>, circa <b>${eur(extra*nViaggi*costoKm)}</b> e <b>${Math.round(extra*nViaggi*co2)} kg di CO₂</b> in più.`}</p></div>
+    ${brief("Con 5 tappe esistono 120 percorsi possibili; con 15 tappe sono più di mille miliardi. Per questo i logistici usano software di ottimizzazione e intelligenza artificiale: li imparerai a usare in laboratorio.")}
+    <div class="row"><button class="btn sec" onclick="lv2()">Riprova</button><button class="btn" onclick="lv3()">Avanti</button></div>
+  `);
+}
+
+/* =========================================================
+   MISSIONE 3 – Le scorte
+   ========================================================= */
+const L3 = {
+  cap: 820, hold: 0.40, step: 10, max: 400,
+  prod: [
+    {id:"pasta", ico:"🍝", n:"Pasta",            stock:80,  min:250, max:350, pen:2},
+    {id:"acqua", ico:"💧", n:"Acqua minerale",   stock:150, min:300, max:400, pen:1},
+    {id:"deter", ico:"🧴", n:"Detersivi",        stock:60,  min:80,  max:140, pen:3}
+  ]
+};
+let ord={};
+function demandPts(p){ const a=[]; for(let d=p.min; d<=p.max; d+=10) a.push(d); return a; }
+function expCost(p,q){ const ds=demandPts(p); let t=0; for(const d of ds){ const disp=p.stock+q; t+= d>disp?(d-disp)*p.pen:(disp-d)*L3.hold; } return t/ds.length; }
+function benchmark(){
+  const qs=[]; for(let q=0;q<=L3.max;q+=L3.step) qs.push(q);
+  const tab=L3.prod.map(p=>qs.map(q=>expCost(p,q)));
+  const stock=L3.prod.reduce((a,p)=>a+p.stock,0);
+  let best=1e9,bq=null;
+  qs.forEach((a,i)=>qs.forEach((b,j)=>qs.forEach((c,k)=>{ if(stock+a+b+c>L3.cap) return; const v=tab[0][i]+tab[1][j]+tab[2][k]; if(v<best){best=v;bq=[a,b,c];} })));
+  return {cost:best,q:bq};
+}
+function lv3(){
+  ord={}; L3.prod.forEach(p=>ord[p.id]=0);
+  render(`
+    ${steps(2)}
+    <h2>Missione 3 · Le scorte</h2>
+    ${brief(`Lunedì riforniamo i supermercati della zona. Devi decidere <b>quanti cartoni ordinare</b> ai fornitori. Se la merce finisce perdiamo vendite (e clienti); se ne avanza troppa, occupa spazio e costa ${L3.hold.toLocaleString("it-IT",{minimumFractionDigits:2})} € a cartone. Attenzione: il magazzino contiene al massimo <b>${L3.cap} cartoni</b> in tutto.`)}
+    ${L3.prod.map(p=>`<div class="card prod">
+      <div class="top"><b>${p.ico} ${p.n}</b><span class="ord" id="o_${p.id}">+0</span></div>
+      <div class="meta">In magazzino: <b>${p.stock}</b> · Vendite previste: <b>${p.min}–${p.max}</b> cartoni<br>Ogni cartone che manca ci costa <b>${eur(p.pen)}</b> di vendita persa</div>
+      <input type="range" min="0" max="${L3.max}" step="${L3.step}" value="0" oninput="l3set('${p.id}',this.value)" aria-label="Cartoni da ordinare: ${p.n}">
+    </div>`).join("")}
+    <div class="card">
+      <div class="top" style="display:flex;justify-content:space-between;margin-bottom:6px"><b>Spazio in magazzino</b><span id="l3cap"></span></div>
+      <div class="bar" id="l3bar"><div></div></div>
+    </div>
+    <button class="btn" id="l3ok" onclick="l3end()">Invia gli ordini</button>
+  `);
+  l3upd();
+}
+function l3set(id,v){ ord[id]=+v; l3upd(); }
+function l3upd(){
+  const tot=L3.prod.reduce((a,p)=>a+p.stock+ord[p.id],0);
+  L3.prod.forEach(p=>$("#o_"+p.id).textContent="+"+ord[p.id]);
+  $("#l3cap").textContent=`${tot} / ${L3.cap}`;
+  $("#l3bar div").style.width=Math.min(100,tot/L3.cap*100)+"%";
+  $("#l3bar").classList.toggle("over",tot>L3.cap);
+  $("#l3ok").disabled=tot>L3.cap;
+  $("#l3ok").textContent= tot>L3.cap?"Magazzino troppo pieno!":"Invia gli ordini";
+}
+function l3end(){
+  const bm=benchmark();
+  const mineExp=L3.prod.reduce((a,p)=>a+expCost(p,ord[p.id]),0);
+  const st= mineExp<=bm.cost*1.10+5?3: mineExp<=bm.cost*1.6+20?2:1;
+  S.stars[2]=Math.max(S.stars[2]??0,st);
+  // la settimana "vera": domanda casuale dentro la previsione
+  let lost=0, left=0;
+  const det=L3.prod.map(p=>{
+    const d=p.min+Math.round(Math.random()*(p.max-p.min)/10)*10, disp=p.stock+ord[p.id];
+    const manc=Math.max(0,d-disp), av=Math.max(0,disp-d);
+    lost+=manc*p.pen; left+=av*L3.hold;
+    return {p,d,disp,manc,av};
+  });
+  render(`
+    ${steps(2)}
+    <h2>Missione 3 · Risultato</h2>
+    <div class="big-stars">${starsTxt(st)}</div>
+    <div class="card">
+      <p><b>Com'è andata la settimana:</b></p>
+      <table class="res"><tr><th>Prodotto</th><th class="n">Disponibili</th><th class="n">Venduti</th><th class="n">Esito</th></tr>
+      ${det.map(r=>`<tr><td>${r.p.ico} ${r.p.n}</td><td class="n">${r.disp}</td><td class="n">${Math.min(r.d,r.disp)}</td><td class="n">${r.manc?`<span class="ko">mancano ${r.manc}</span>`:`avanzano ${r.av}`}</td></tr>`).join("")}
+      </table>
+      <p class="small" style="margin-top:8px">Vendite perse: <b>${eur(lost)}</b> · Costo della merce ferma: <b>${eur(left)}</b></p>
+    </div>
+    <div class="card"><p>${st===3
+      ?`<span class="ok">Decisione da professionista!</span> Hai bilanciato spazio, rischio di restare senza merce e costi.`
+      :`Si poteva fare meglio. Un buon logistico in questo caso avrebbe ordinato circa <b>${L3.prod.map((p,i)=>`${bm.q[i]} cartoni di ${p.n.toLowerCase()}`).join(", ")}</b>.`}
+      <br><span class="small">Il trucco: lo spazio non basta per tutto, quindi si sacrifica il prodotto che costa meno lasciare a secco (l'acqua) e si protegge quello che costa di più (i detersivi).</span></p></div>
+    ${brief("Le vendite vere cambiano ogni volta: anche un bravo logistico può avere una settimana sfortunata. Per questo le stelle premiano la qualità della decisione, non la fortuna.")}
+    <div class="row"><button class="btn sec" onclick="lv3()">Riprova</button><button class="btn" onclick="finale()">Vedi il risultato</button></div>
+  `);
+}
+
+/* =========================================================
+   FINALE + ORIENTAMENTO
+   ========================================================= */
+function finale(){
+  const t=S.stars.reduce((a,b)=>a+(b||0),0);
+  const prof= t>=8?["Logistico nato! 🏆","Ragioni sui vincoli, sui numeri e sulle conseguenze delle scelte: sei fatto per questo lavoro."]
+            : t>=5?["Ottimo organizzatore 👍","Hai il senso dell'organizzazione: con lo studio giusto diventerai un professionista."]
+            :      ["Talento da allenare 💪","Ogni logistico ha cominciato così: le cose che ti sono sembrate difficili, a scuola si imparano."];
+  const od=CONFIG.openDay.map(o=>`<div class="date"><b>${o.quando}</b><br>${o.dove}</div>`).join("");
+  render(`
+    <span class="pill">Missione completata</span>
+    <div class="big-stars">★ ${t}/9</div>
+    <h1 style="text-align:center">${prof[0]}</h1>
+    <p style="text-align:center">${prof[1]}</p>
+    <div class="promo">
+      <h2>All'ITE Filetico lo impari davvero</h2>
+      <p>Diploma in <b>4 anni</b>, indirizzo AFM – SIA con <b>curvatura Logistica</b>:</p>
+      <ul>
+        <li>supply chain, distribuzione e gestione delle scorte</li>
+        <li>software gestionali e intelligenza artificiale per magazzini</li>
+        <li>laboratori, project work e Formazione Scuola-Lavoro in azienda</li>
+      </ul>
+      <p style="margin-top:12px"><b>Vieni a trovarci</b></p>
+      ${od}
+      <p class="small" style="color:#ffd9c2;margin-top:8px">${CONFIG.iscrizioni}</p>
+    </div>
+    <button class="btn giallo" onclick="quadro()">Guarda il quadro orario</button>
+    ${CONFIG.prenotaVisita?`<a class="btn" style="text-align:center;text-decoration:none" href="${CONFIG.prenotaVisita}" target="_blank" rel="noopener">Prenota una visita</a>`:""}
+    ${CONFIG.sitoScuola?`<a class="btn sec" style="text-align:center;text-decoration:none" href="${CONFIG.sitoScuola}" target="_blank" rel="noopener">Sito della scuola</a>`:""}
+    <div class="card small">🚧 <b>Presto la fase 2:</b> metterai alla guida il tuo camion lungo il giro che hai organizzato, per le strade della Ciociaria.</div>
+    <button class="btn sec" onclick="S.stars=[null,null,null];intro()">Gioca di nuovo</button>
+  `);
+}
+function quadro(){
+  const m=document.createElement("div"); m.className="modal";
+  m.innerHTML=`<button class="x" aria-label="Chiudi">×</button><img src="${CONFIG.immagineQuadroOrario}" alt="Quadro orario del diploma in 4 anni, curvatura Logistica">`;
+  m.onclick=()=>m.remove(); document.body.appendChild(m);
+}
+intro();
+try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{}); } catch(e) {}
+</script>
+</body>
+</html>
